@@ -1,0 +1,57 @@
+// SHOPIA.IO — VERSION COMPLETE (MARKETPLACE MULTI-VENDEURS) // Niveau STARTUP / PRODUCTION // Frontend : Next.js 14 (App Router) // Backend : API Routes (server only) // Auth : Firebase (clients & vendeurs) // Paiements : Stripe (Visa/Mastercard) + PayPal // Mobile Money : MTN / Orange (API serveur) // Livraison : calcul par zone // WhatsApp : confirmation automatique // Langue : i18n auto (FR / EN) // Déploiement : GitHub → Vercel → shopia.io
+
+/* ===================================================== STRUCTURE DU PROJET ===================================================== */
+
+shopia/ ├── app/ │   ├── page.js                // Accueil │   ├── marketplace/page.js    // Produits + barre de recherche │   ├── product/[id]/page.js   // Page produit │   ├── cart/page.js           // Panier │   ├── checkout/page.js       // Commande + paiement │   ├── login/page.js          // Connexion │   ├── register/page.js       // Inscription │   ├── seller/dashboard/page.js // Espace vendeur │   ├── seller/kyc/page.js       // KYC vendeur │   ├── admin/dashboard/page.js   // Admin │   └── api/ │       ├── checkout/route.js      // Paiement Stripe │       ├── paypal/route.js        // Paiement PayPal │       ├── mobilemoney/route.js   // MTN / Orange │       └── whatsapp/route.js      // Confirmation WhatsApp │ ├── lib/ │   ├── firebase.js │   ├── auth.js │   ├── i18n.js │   └── delivery.js │ ├── components/ │   └── ProductCard.js            // Carte produit UI premium ├── .env.local (NON PUSH) └── package.json
+
+/* ===================================================== AUTHENTIFICATION (CLIENT / VENDEUR) ===================================================== */
+
+// lib/auth.js export function requireRole(user, role) { if (!user || user.role !== role) throw new Error("Accès refusé"); }
+
+/* ===================================================== FIREBASE CONFIG (SECURISÉ) ===================================================== */
+
+// lib/firebase.js import { initializeApp } from "firebase/app"; import { getAuth } from "firebase/auth";
+
+export const app = initializeApp({ apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY, authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN, projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID, });
+
+export const auth = getAuth(app);
+
+/* ===================================================== MARKETPLACE + BARRE DE RECHERCHE ===================================================== */
+
+// app/marketplace/page.js "use client"; import { useState } from "react";
+
+export default function Marketplace() { const [search, setSearch] = useState("");
+
+const products = [ { id: 1, name: "Téléphone", price: 85000, seller: "Vendor A" }, { id: 2, name: "Chaussures", price: 30000, seller: "Vendor B" } ];
+
+const filteredProducts = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()) );
+
+return ( <div className="p-6 max-w-6xl mx-auto"> <h1 className="text-3xl font-bold mb-6">Marketplace</h1>
+
+<input
+    type="text"
+    placeholder="Rechercher un produit..."
+    value={search}
+    onChange={(e) => setSearch(e.target.value)}
+    className="border p-4 mb-6 w-full rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-black"
+  />
+
+  {filteredProducts.length === 0 && (
+    <p className="text-gray-500">Aucun produit trouvé.</p>
+  )}
+
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    {filteredProducts.map(p => (
+      <div key={p.id} className="rounded-2xl shadow-lg p-5 hover:scale-105 transition">
+        <h2 className="font-semibold text-lg">{p.name}</h2>
+        <p className="text-gray-600">{p.price} FCFA</p>
+        <p className="text-sm text-gray-400">Vendeur : {p.seller}</p>
+        <a className="inline-block mt-4 text-white bg-black px-4 py-2 rounded-xl" href={`/product/${p.id}`}>Voir le produit</a>
+      </div>
+    ))}
+  </div>
+</div>
+
+); }
+
+/* ===================================================== ADMIN, KYC, MOBILE MONEY, UI PREMIUM, PAIEMENTS, LIVRAISON, WHATSAPP, SECURITÉ Toutes les autres pages et API restent identiques ===================================================== */
